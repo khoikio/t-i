@@ -1,0 +1,49 @@
+# Ignore Gradle build output
+/build/
+/bin/
+/build.gradle
+/gradlew
+/gradlew.bat
+/.gradle/
+
+# Ignore IDE settings
+/.idea/
+/.vscode/
+
+# Ignore log files
+*.log
+
+# Ignore compiled Java classes
+*.class
+
+# Ignore jar files
+*.jar
+
+# Ignore temporary files
+*.tmp
+*.swp
+
+# Ignore test results
+/test-results/
+
+# Ignore generated files
+/build/
+
+# Ignore system files
+.DS_Store
+Thumbs.db
+
+# Ignore Excel, Word, PowerPoint files (if not needed)
+*.xlsx
+*.docx
+*.pptx
+
+# Ignore images (if not needed)
+*.png
+*.jpg
+*.jpeg
+*.gif
+
+# Ignore replay and hs_err_pid files
+replay_*.log
+hs_err_pid*.log

@@ -1,0 +1,71 @@
+START Spring Boot Application
+
+// Spring Boot scan các component: Controllers, SecurityConfig, WebSocketConfig
+Initialize Users in Memory (sv01-sv10, teacher01, admin)
+Configure SecurityFilterChain
+Register WebSocket endpoint "/chat" -> ChatHandler
+
+-------------------
+ChatHandler:
+-------------------
+ON WebSocket Connection Established(session):
+    joinRoom(session, "general")
+    send system message "Bạn đã tham gia phòng: general"
+
+ON WebSocket Text Message(session, message):
+    IF message == "ping":
+        send "pong" -> session
+        RETURN
+    IF message == "pong":
+        RETURN
+
+    TRY:
+        Parse message JSON -> ChatMessage
+        sessionNicknames[session] = ChatMessage.nickname
+
+        IF message starts with "/join ":
+            roomName = message after "/join "
+            joinRoom(session, roomName)
+            RETURN
+
+        botResponses = BotManager.processMessage(ChatMessage, session)
+        FOR each botResponse in botResponses:
+            broadcastToRoom(botResponse.room, botResponse, session)
+
+        IF botResponses indicate "mute/ban":
+            RETURN
+
+        currentRoom = sessionRooms[session]
+        IF currentRoom != null AND NOT message.startsWith("/"):
+            broadcastToRoom(currentRoom, ChatMessage, session)
+
+    CATCH Exception:
+        Treat as plain text message
+        IF message starts with "/join ":
+            joinRoom(session, roomName)
+        ELSE:
+            currentRoom = sessionRooms[session]
+            broadcast plain text message to currentRoom after BotManager processing
+
+ON WebSocket Connection Closed(session):
+    currentRoom = sessionRooms[session]
+    leaveRoom(session, currentRoom)
+    remove session from sessionRooms, sessionNicknames
+
+METHOD joinRoom(session, roomName):
+    leaveRoom(session, currentRoom) if exists
+    rooms[roomName].add(session)
+    sessionRooms[session] = roomName
+    send system message to session
+    broadcast join notification to other sessions in room
+
+METHOD leaveRoom(session, roomName):
+    rooms[roomName].remove(session)
+    IF room is empty:
+        remove room
+    ELSE:
+        broadcast leave notification to other sessions in room
+
+METHOD broadcastToRoom(roomName, ChatMessage, sender):
+    FOR each session in rooms[roomName]:
+        send ChatMessage JSON
